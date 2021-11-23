@@ -2,6 +2,15 @@
 
 #include "config.hpp"
 
+struct Message
+{
+	std::string message;
+
+	std::string username;
+
+	bool speak;
+};
+
 class Chatbot
 {
 public:
@@ -17,6 +26,12 @@ public:
 
 	//Main loop receive function
 	void Receive();
+
+	//Parse read buffer
+	void ParseReadBuffer();
+
+	//Handle parsed messages
+	void HandleMessages();
 
 	//Send a message
 	void Send(std::string message);
@@ -43,4 +58,10 @@ private:
 
 	//Name of twitch channel that the bot should connect to
 	std::string _channelName;
+
+	//String buffer for incoming messages from twitch server
+	std::string _readBuffer;
+
+	//Vector of messages
+	std::vector<std::shared_ptr<Message>> _messages;
 };

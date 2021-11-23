@@ -1,2 +1,2 @@
-oauth_code
-channel_name
+oauth:6e75xfnee53g8p7k1xgt0m0ash0mfq
+elyod

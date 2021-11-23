@@ -113,46 +113,148 @@ void Chatbot::Receive()
 	//If data is received
 	if (_socket->receive(data, sizeof(data), received) == sf::Socket::Done)
 	{
+		_readBuffer.append(data, received);
+
 		const std::string response(data, received);
 
-		std::cout << std::endl << response << std::endl;
-
-		//twitch will occasionally PING the bot, if it does, return PONG to maintain connection
+		//Respond directly to ping
 		if (response == "PING :tmi.twitch.tv\r\n")
 		{
 			std::cout << "PING" << std::endl;
 
 			Send("PONG :tmi.twitch.tv\r\n");
 		}
+	}
+}
 
-		//Else if the response contains substring indicating that custom reward has been redeemed, run the TTS
-		//This does mean that other custom rewards will also trigger TTS
-		else if (response.find("custom-reward-id=") != std::string::npos)
+//Parse read buffer
+void Chatbot::ParseReadBuffer()
+{
+	///////////////////////
+	//	Go through buffer, pull out one message at a time and deal with it, then delete message from buffer
+	///////////////////////
+
+	bool allMessagesHandled = false;
+
+	while (!allMessagesHandled)
+	{
+		auto lastMessageChar = _readBuffer.begin();
+
+		//Find the linefeed to signify end of message
+
+		for (auto c = _readBuffer.begin(); c != _readBuffer.end(); c++)
 		{
-			int i = response.size() - 1;
-
-			bool colonFound = false;
-
-			//Find the position of the last colon in the reponse, this indicates the start of the message to be spoken
-			while (!colonFound)
+			if (int(*c == 10))	//Line feed
 			{
-				i--;
+				lastMessageChar = c;
 
-				if (response[i] == ':')
-					colonFound = true;
+				break;
 			}
-
-			std::string speech;
-
-			//Set up the string to be spoken
-			for (int j = i; j < response.size(); j++)
-			{
-				speech.push_back(response[j]);
-			}
-
-			//Speak the string
-			Say(speech);
 		}
+
+		///////////////////////
+		//	If no LINE FEED is found, or there are no chars left in the message, messsage handling is complete
+		///////////////////////
+
+		if (lastMessageChar == _readBuffer.end() || lastMessageChar == _readBuffer.begin())
+			allMessagesHandled = true;
+
+
+		///////////////////////
+		//	Else, process the message
+		///////////////////////
+
+		else
+		{
+
+			///////////////////////
+			//	Create the message string
+			///////////////////////
+
+			std::string message;
+
+			for (auto c = _readBuffer.begin(); c != lastMessageChar + 1; c++)
+			{
+				message.push_back(*c);
+			}
+
+			///////////////////////
+			//	Work out what kind of message it is and handle appropriately (only handle PRIVMSG for now)
+			///////////////////////
+
+			if (message.find("PRIVMSG") != std::string::npos)
+			{
+				///////////////////////
+				//	Private message - find the username
+				///////////////////////
+
+				size_t nameChar = message.find("display-name=") + 13;
+
+				std::string username;
+
+				while (message[nameChar] != ';')
+				{
+					username.push_back(message[nameChar]);
+
+					nameChar++;
+				}
+
+				std::cout << username << ": ";
+
+				///////////////////////
+				//	Now handle the content of the message
+				///////////////////////
+
+				//Find comment start 
+				size_t commentStart = message.find("PRIVMSG");
+
+				while (message[commentStart] != ':')
+				{
+					commentStart++;
+				}
+
+				commentStart++;
+
+				std::string comment;
+
+				for (size_t c = commentStart; c != message.size(); c++)
+				{
+					comment.push_back(message[c]);
+
+					std::cout << message[c];
+				}
+
+				//Add comment to message list to handle later
+				_messages.push_back(std::shared_ptr<Message>(new Message()));
+
+				_messages.back()->message = comment;
+				_messages.back()->username = username;
+				_messages.back()->speak = false;
+
+				///////////////////////
+				//	Check if there is a TTS reward and speak message if so (this will speak all custom rewards)
+				///////////////////////
+
+				if (message.find("custom-reward-id") != std::string::npos)
+					_messages.back()->speak = true;
+
+			}
+
+			//Delete the message up to the line feed from the buffer
+			_readBuffer.erase(_readBuffer.begin(), lastMessageChar + 1);
+		}
+	}
+}
+
+//Handle parsed messages
+void Chatbot::HandleMessages()
+{
+	while (_messages.size())
+	{
+		if (_messages.back()->speak)
+			Say(_messages.back()->message);
+
+		_messages.pop_back();
 	}
 }
 

@@ -32,6 +32,10 @@ int main()
         Sleep(10);
 
         chatbot->Receive();
+
+        chatbot->ParseReadBuffer();
+
+        chatbot->HandleMessages();
     }
 
     return 0;
