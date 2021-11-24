@@ -287,3 +287,61 @@ void Chatbot::Say(std::string string)
 	//Speak the string
 	_voice->Speak(r.c_str(), 0, NULL);
 }
+
+//Load the sound files from the sound.txt index into the sound buffer map
+void Chatbot::LoadSoundBuffers()
+{
+	//Open the sound index file
+	std::ifstream soundFile("sounds.txt");
+
+	//Read in pairs of lines at a time. The first line contains the command used to invoke the sound(s), the second line contains a list of sounds that will be invoked by the command (one chosen randomly from the list)
+
+	std::string commandLine;
+	std::string soundsLine;
+
+	//Get the first line
+	while (std::getline(soundFile, commandLine))
+	{
+		//Try and get the second line
+		if (std::getline(soundFile, soundsLine))
+		{
+			std::vector<std::shared_ptr<sf::SoundBuffer>> buffers;
+
+			//parse the second line into elements
+
+			std::stringstream ss(soundsLine);
+
+			while (ss.good())
+			{
+				std::string soundFilename;
+				std::getline(ss, soundFilename, ',');
+
+				//Try to load file with that filename
+
+				std::shared_ptr<sf::SoundBuffer> buffer = std::shared_ptr<sf::SoundBuffer>(new sf::SoundBuffer());
+
+				if (buffer->loadFromFile(soundFilename))
+					buffers.push_back(buffer);
+
+				else
+				{
+					std::cout << "Couldn't load " << soundFilename << std::endl;
+
+					break;
+				}
+
+			}
+
+			_soundBuffers[commandLine] = buffers;
+		}
+
+		else
+		{
+			std::cout << "Couldn't find files for  " << commandLine << std::endl;
+
+			break;
+		}
+	}
+
+	soundFile.close();
+}

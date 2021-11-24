@@ -10,6 +10,7 @@
 
 #include <SFML/Network.hpp>
 #include <SFML/System.hpp>
+#include <SFML/Audio.hpp>
 
 #include <Windows.h>
 #include <Dwmapi.h>

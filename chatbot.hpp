@@ -64,4 +64,10 @@ private:
 
 	//Vector of messages
 	std::vector<std::shared_ptr<Message>> _messages;
+
+	//SFX
+
+	std::map<std::string, std::vector<std::shared_ptr<sf::SoundBuffer>>> _soundBuffers;
+
+	void LoadSoundBuffers();
 };
