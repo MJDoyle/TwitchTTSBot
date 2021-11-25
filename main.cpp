@@ -18,6 +18,9 @@ int main()
 
     configFile.close();
 
+    //Seed RNG
+    SeedRand();
+
     //Set up the bot
     std::shared_ptr<Chatbot> chatbot = std::shared_ptr<Chatbot>(new Chatbot(pass, join, join));
 

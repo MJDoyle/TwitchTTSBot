@@ -17,6 +17,8 @@ Chatbot::Chatbot(std::string passcode, std::string botName, std::string channelN
 	if (FAILED(CoCreateInstance(CLSID_SpVoice, NULL, CLSCTX_ALL, IID_ISpVoice, (void**)&_voice)))
 		std::cout << "Voice not initialized" << std::endl;
 
+	LoadSoundBuffers();
+
 }
 
 //Connect to twitch
@@ -251,9 +253,36 @@ void Chatbot::HandleMessages()
 {
 	while (_messages.size())
 	{
+		//Check message for SFX keywords
+
+		for (auto keyword = _soundBuffers.begin(); keyword != _soundBuffers.end(); keyword++)
+		{
+
+			std::cout << "KEY: " << keyword->first << std::endl;
+
+			std::cout << "NUM SOUNDS: " << keyword->second.size() << std::endl;
+
+
+			if (_messages.back()->message.find(keyword->first) != std::string::npos)
+			{
+				//Create new sound, play it, and add it to list of sounds
+				std::shared_ptr<sf::Sound> sound = std::shared_ptr<sf::Sound>(new sf::Sound);
+
+				sound->setBuffer(*_soundBuffers[keyword->first][_soundBuffers[keyword->first].size() * RandFloat()]);
+
+
+				sound->play();
+
+				_sounds.push_back(sound);
+			}
+		}
+
+		//Speak message if if must be spake
 		if (_messages.back()->speak)
 			Say(_messages.back()->message);
 
+
+		//Remove message from queue
 		_messages.pop_back();
 	}
 }
@@ -305,6 +334,8 @@ void Chatbot::LoadSoundBuffers()
 		//Try and get the second line
 		if (std::getline(soundFile, soundsLine))
 		{
+			std::cout << "SOUND LINE: " << soundsLine << std::endl;
+
 			std::vector<std::shared_ptr<sf::SoundBuffer>> buffers;
 
 			//parse the second line into elements
@@ -344,4 +375,18 @@ void Chatbot::LoadSoundBuffers()
 	}
 
 	soundFile.close();
+}
+
+//Handle anything else that needs handling
+void Chatbot::Update()
+{
+	//Remove sounds if they are no longer playing
+	for (auto sound = _sounds.begin(); sound != _sounds.end(); )
+	{
+		if ((*sound)->getStatus() != sf::Sound::Playing)
+			sound = _sounds.erase(sound);
+
+		else
+			sound++;
+	}
 }

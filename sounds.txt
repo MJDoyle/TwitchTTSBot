@@ -1,0 +1,10 @@
+!woo
+woo1.wav,woo2.wav,woo3.wav,woo4.wav,woo5.wav,woo6.wav
+!boo
+boo1.wav,boo2.wav,boo3.wav,boo4.wav,boo5.wav,boo6.wav
+!applause
+applause.wav
+elyodMino
+moo1.wav,moo2.wav,moo3.wav,moo4.wav,moo5.wav,moo6.wav
+elyodNurgle
+poo1.wav,poo2.wav,poo3.wav

@@ -39,6 +39,9 @@ public:
 	//Speak a string using windows text to speech
 	void Say(std::string message);
 
+	//Handle anything else that needs handling
+	void Update();
+
 private:
 
 	//TCP socket for connection with twitch
@@ -67,7 +70,11 @@ private:
 
 	//SFX
 
+	//Sound buffers
 	std::map<std::string, std::vector<std::shared_ptr<sf::SoundBuffer>>> _soundBuffers;
+
+	//Active sounds
+	std::vector<std::shared_ptr<sf::Sound>> _sounds;
 
 	void LoadSoundBuffers();
 };

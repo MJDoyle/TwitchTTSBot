@@ -21,3 +21,11 @@
 
 //bot error codes
 const enum BOT_RETURNS { CHATBOT_SUCCESS, CHATBOT_AUTH_FAILURE, CHATBOT_CONNECT_FAILURE, CHATBOT_NO_RESPONSE, NUM_BOT_RETURNS };
+
+std::default_random_engine& RandEngine();
+
+//Generate uniform random float between 0 and 1
+float RandFloat();
+
+//The the RNG
+void SeedRand();
